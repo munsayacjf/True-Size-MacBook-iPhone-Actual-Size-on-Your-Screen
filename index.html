@@ -62,6 +62,10 @@ select{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:8p
 a{color:#0066cc;text-decoration:none}
 @media print{@page{margin:0}body>*:not(#print){display:none!important}body{display:block;overflow:visible;height:auto}#print{display:block}#print text{stroke:none}}
 #sw{display:flex;align-items:center;margin-top:12px;font-size:12px;color:var(--mute)}.dot{width:22px;height:22px;border-radius:50%;border:1px solid #c7c7cc;cursor:pointer;margin-right:8px;padding:0}.dot.on{outline:2px solid #0071e3;outline-offset:2px}
+#cal{position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:90;display:none;align-items:center;justify-content:center;text-align:center;padding:24px}
+#cal h2{margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.02em;text-transform:none;color:var(--fg)}#cal p{max-width:430px;margin:0 auto 22px;font-size:14px;color:var(--mute);line-height:1.5}
+#cc{margin:0 auto 22px;border:2px dashed #0071e3;background:rgba(0,113,227,.05)}#csl{width:min(560px,80vw);accent-color:#1d1d1f}#cal .r{display:flex;gap:10px;justify-content:center;margin-top:16px}
+#calnote{margin-top:10px;font-size:12px;color:var(--mute);line-height:1.9}.calibrated .est{display:none}
 #ov{position:fixed;inset:0;background:#fff;z-index:100;display:none;align-items:center;justify-content:center;text-align:center;padding:32px}
 #ov h2{font-size:24px;font-weight:600;letter-spacing:-.02em;margin:14px 0 8px;text-transform:none;color:var(--fg)}#ov p{font-size:15px;color:var(--mute);line-height:1.5;max-width:340px;margin:0 auto}#ov .ico{font-size:44px}
 @media (max-width:1023px){body{grid-template-columns:1fr 210px}header{left:20px;top:20px;max-width:300px}#name{font-size:22px}aside{padding:20px 12px}.item{font-size:13px;padding:8px}#meta{font-size:12px}}
@@ -76,6 +80,7 @@ a{color:#0066cc;text-decoration:none}
     <p id="name"></p>
     <div id="meta"></div>
     <div id="sw"></div>
+    <div id="calnote"></div>
   </header>
   <svg id="stage" xmlns="http://www.w3.org/2000/svg"></svg>
   <div id="warn">Too large for this window — zoom out (Ctrl / ⌘ −), or check Resolution under Monitor &amp; options</div>
@@ -90,15 +95,16 @@ a{color:#0066cc;text-decoration:none}
 <h2>Monitor &amp; options</h2>
   <div id="panel">
     <div><b id="det"></b></div>
-    <div class="row">Your monitor <input id="diag" type="number" min="10" max="60" step="0.1"> inches
+    <div class="row est">Your monitor <input id="diag" type="number" min="10" max="60" step="0.1"> inches
       <button class="chip" data-d="21.5">21.5</button><button class="chip" data-d="24">24</button><button class="chip" data-d="27">27</button><button class="chip" data-d="32">32</button></div>
-    <div class="row">Resolution <select id="res"></select></div>
-    <div class="row">Fine-tune <input id="tune" type="range" min="90" max="110" step="0.1" value="100"> <span id="tv">100%</span></div>
+    <div class="row est">Resolution <select id="res"></select></div>
+    <div class="row est">Fine-tune <input id="tune" type="range" min="90" max="110" step="0.1" value="100"> <span id="tv">100%</span></div>
     <div class="row">Compare with <select id="ref"><option value="">Nothing</option><option value="card">Credit card</option><option value="a4">A4 sheet</option><option value="letter">US Letter</option><option value="a5">A5 notebook</option><option value="book">Paperback book</option></select></div>
     <div class="row"><label class="chk"><input id="cmp" type="checkbox"> Compare all sizes side by side</label></div>
     <div class="row"><button class="chip" id="copy">Copy share link</button><button class="chip" id="prt">Print true-size template</button></div>
   </div>
 </aside>
+<div id="cal"><div class="cb"><h2>Calibrate your screen</h2><p>Hold a real credit card (or any bank card) flat against the screen and drag the slider until the dashed outline matches its edges exactly. This works on any screen, in any browser.</p><div id="cc"></div><input id="csl" type="range" min="120" max="1400" step="0.5"><div class="r"><button class="chip" id="cm">− 1 px</button><button class="chip" id="cp">+ 1 px</button></div><div class="r"><button class="chip" id="csave">Save</button><button class="chip" id="ccancel">Cancel</button></div></div></div>
 <div id="print"></div>
 <section class="sr" aria-label="Screen size reference"><h2>MacBook and iPhone screen sizes (physical)</h2>
 <p>True Size shows how big each MacBook and iPhone display really is on your own monitor. Physical size is calculated from each display's resolution and pixels per inch.</p>
@@ -408,8 +414,8 @@ function tint(h){const t=hx(h),c=o=>'rgb('+o.map((v,i)=>Math.max(0,Math.min(255,
   $('#lidEdge').style.fill=c(hx('#6D6E70'))}
 const $=s=>document.querySelector(s), svg=$('#stage');
 let group='mac',cur=DATA.mac[1],unit='cm',diag=27,tune=1,view='size';
-let resSel='';
-try{const s=JSON.parse(localStorage.getItem('ts')||'{}');if(s.diag)diag=s.diag;if(s.tune)tune=s.tune;if(s.unit)unit=s.unit;if(s.res)resSel=s.res;
+let resSel='',cal=null;
+try{const s=JSON.parse(localStorage.getItem('ts')||'{}');if(s.diag)diag=s.diag;if(s.tune)tune=s.tune;if(s.unit)unit=s.unit;if(s.res)resSel=s.res;if(s.cal)cal=s.cal;
  DATA.custom=JSON.parse(localStorage.getItem('tsc')||'[]')}catch(e){}
 // restore state from share link
 (function(){const p=new URLSearchParams(location.hash.slice(1));
@@ -430,13 +436,13 @@ function native(){const r=devicePixelRatio||1,sw=screen.width,sh=screen.height;
     sc=Math.abs(Math.log(near/z))+.05*Math.abs(Math.log(z));if(!best||sc<best.sc)best={w,h,sc}}
   return best?{w:best.w,h:best.h,r}:{w:Math.round(sw*r),h:Math.round(sh*r),r}}
 // CSS px per inch = physical ppi / devicePixelRatio (dpr already includes OS scaling and browser zoom)
-const pxPerMm=()=>{const n=native();return Math.hypot(n.w,n.h)/diag/n.r/25.4*tune};
+const pxPerMm=()=>{if(cal)return cal.k*cal.r/(devicePixelRatio||1)*tune;const n=native();return Math.hypot(n.w,n.h)/diag/n.r/25.4*tune};
 function initRes(){$('#res').innerHTML='<option value="">Auto-detect</option>'+RESL.map(v=>`<option value="${v}">${v.replace('x',' × ')}</option>`).join('');$('#res').value=resSel}
 const fmt=mm=>unit==='cm'?(mm/10).toFixed(1)+' cm':(mm/25.4).toFixed(2)+'″';
 const both=mm=>(mm/10).toFixed(1)+' cm · '+(mm/25.4).toFixed(2)+'″';
 const el=(t,a,txt)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e};
 const add=e=>svg.appendChild(e);
-const save=()=>{try{localStorage.setItem('ts',JSON.stringify({diag,tune,unit,res:resSel}))}catch(e){}};
+const save=()=>{try{localStorage.setItem('ts',JSON.stringify({diag,tune,unit,res:resSel,cal}))}catch(e){}};
 
 function nav(){
   for(const g of ['mac','phone'])$('#'+g).innerHTML=DATA[g].map(x=>`<button class="item ${x===cur?'on':''}" data-g="${g}" data-i="${x.id}">${x.n}<small>${x.d}″</small></button>`).join('');
@@ -498,7 +504,9 @@ function draw(){
   else m=`<b>${cur.d}″</b> display · ${cur.w} × ${cur.h} px · ${cur.ppi} ppi<br>Width <b>${both(cur.W)}</b><br>Height <b>${both(cur.H)}</b>`+src;
   $('#meta').innerHTML=m;
   const sw=$('#sw');if(cs){const o=OPT[cur.id],ci=col[cur.id]||0;sw.innerHTML=o.map((id,i)=>`<button class="dot${i===ci?' on':''}" data-c="${i}" title="${PAL[id][0]}" style="background:${PAL[id][1]}"></button>`).join('')+`<span>${PAL[o[ci]][0]}</span>`;tint(PAL[o[ci]][1])}else sw.innerHTML='';
-  $('#det').textContent=`Detected ${n.w} × ${n.h} px · ${Math.round(Math.hypot(n.w,n.h)/diag)} ppi · UI scale ${Math.round(n.r*100)}%`;
+  $('#det').textContent=cal?`Calibrated with your card ✓ · ${Math.round(cal.k*25.4*cal.r)} ppi`:`Detected ${n.w} × ${n.h} px · ${Math.round(Math.hypot(n.w,n.h)/diag)} ppi · UI scale ${Math.round(n.r*100)}%`;
+  document.body.classList.toggle('calibrated',!!cal);
+  $('#calnote').innerHTML=cal?'<button class="chip" id="calbtn">Recalibrate</button> <button class="chip" id="calreset">Use auto-detect</button>':'Sizes are estimated from your screen info and can be off in some browsers. <button class="chip" id="calbtn">Calibrate with a credit card</button>';
   $('#diag').value=diag;$('#tv').textContent=(tune*100).toFixed(1)+'%';$('#tune').value=tune*100;
   document.querySelectorAll('#units button').forEach(b=>b.classList.toggle('on',b.dataset.u===unit));
   document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
@@ -520,6 +528,7 @@ document.addEventListener('click',e=>{
   if(b){group=b.dataset.g;cur=DATA[group].find(x=>x.id===b.dataset.i);nav();draw()}
   const c=e.target.closest('.chip[data-d]');if(c){diag=+c.dataset.d;save();draw()}
   const u=e.target.closest('#units button');if(u){unit=u.dataset.u;save();draw()}
+  if(e.target.closest('#calbtn'))openCal();if(e.target.closest('#calreset')){cal=null;save();draw()}
   const dt=e.target.closest('.dot');if(dt){col[cur.id]=+dt.dataset.c;draw()}
   const v=e.target.closest('#views button');if(v){view=v.dataset.v;draw()}
   const d=e.target.closest('[data-del]');if(d){DATA.custom=DATA.custom.filter(x=>x.id!==d.dataset.del);if(cur.custom&&!DATA.custom.includes(cur)){cur=DATA.mac[1];group='mac'}try{localStorage.setItem('tsc',JSON.stringify(DATA.custom))}catch(_){}nav();draw()}
@@ -532,6 +541,12 @@ $('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.hr
 $('#prt').onclick=printIt;
 $('#diag').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(v>5&&v<100){diag=v;save();draw()}});
 $('#tune').addEventListener('input',e=>{tune=e.target.value/100;save();draw()});
+function calDraw(){const w=+$('#csl').value,c=$('#cc');c.style.width=w+'px';c.style.height=w*53.98/85.6+'px';c.style.borderRadius=3.18*w/85.6+'px'}
+function openCal(){const w=Math.max(120,Math.min(1400,85.6*pxPerMm()));$('#csl').value=w;calDraw();$('#cal').style.display='flex'}
+$('#csl').addEventListener('input',calDraw);
+$('#cm').onclick=()=>{$('#csl').value=+$('#csl').value-1;calDraw()};$('#cp').onclick=()=>{$('#csl').value=+$('#csl').value+1;calDraw()};
+$('#ccancel').onclick=()=>{$('#cal').style.display='none'};
+$('#csave').onclick=()=>{cal={k:+$('#csl').value/85.6,r:devicePixelRatio||1};tune=1;save();$('#cal').style.display='none';draw()};
 $('#res').addEventListener('change',e=>{resSel=e.target.value;save();draw()});
 ['#ref','#cmp'].forEach(i=>$(i).addEventListener('change',draw));
 addEventListener('resize',draw);
