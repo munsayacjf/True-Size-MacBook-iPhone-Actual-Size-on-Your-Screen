@@ -8,16 +8,16 @@
 <meta name="keywords" content="MacBook actual size, MacBook screen size comparison, MacBook Air 13 vs 15, MacBook Pro 14 vs 16, MacBook Neo size, iPhone 17 Pro Max actual size, iPhone 18 Pro size, true size screen simulator">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#ffffff"><meta name="color-scheme" content="light">
-<link rel="canonical" href="https://YOUR-DOMAIN.com/">
+<link rel="canonical" href="https://macbook-size.netlify.app/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website"><meta property="og:site_name" content="True Size">
 <meta property="og:title" content="True Size — MacBook &amp; iPhone actual size on your screen">
 <meta property="og:description" content="Stop guessing with a tape measure. See real MacBook and iPhone screen sizes on your own monitor.">
-<meta property="og:url" content="https://YOUR-DOMAIN.com/"><meta property="og:image" content="https://YOUR-DOMAIN.com/og-image.png">
+<meta property="og:url" content="https://macbook-size.netlify.app/"><meta property="og:image" content="https://macbook-size.netlify.app/og-image.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Outline of a MacBook and iPhone drawn at true size">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="True Size — MacBook &amp; iPhone actual size">
-<meta name="twitter:description" content="See real MacBook and iPhone screen sizes on your own monitor."><meta name="twitter:image" content="https://YOUR-DOMAIN.com/og-image.png">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "True Size", "url": "https://YOUR-DOMAIN.com/", "description": "See the real physical size of every MacBook (Neo, Air 13″/15″, Pro 14″/16″) and iPhone (17 to 18 Pro Max) on your own monitor. Auto-detects your screen, compares sizes side by side, free.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (desktop browser)", "browserRequirements": "Requires JavaScript", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "image": "https://YOUR-DOMAIN.com/og-image.png"}</script>
+<meta name="twitter:description" content="See real MacBook and iPhone screen sizes on your own monitor."><meta name="twitter:image" content="https://macbook-size.netlify.app/og-image.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "True Size", "url": "https://macbook-size.netlify.app/", "description": "See the real physical size of every MacBook (Neo, Air 13″/15″, Pro 14″/16″) and iPhone (17 to 18 Pro Max) on your own monitor. Auto-detects your screen, compares sizes side by side, free.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (desktop browser)", "browserRequirements": "Requires JavaScript", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "image": "https://macbook-size.netlify.app/og-image.png"}</script>
 <style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
 <style>
 :root{--bg:#fff;--fg:#1d1d1f;--mute:#86868b;--line:#d2d2d7;--soft:#f5f5f7;box-sizing:border-box}
@@ -78,7 +78,7 @@ a{color:#0066cc;text-decoration:none}
     <div id="sw"></div>
   </header>
   <svg id="stage" xmlns="http://www.w3.org/2000/svg"></svg>
-  <div id="warn">Too large for this window — maximise it or zoom out (Ctrl / ⌘ −)</div>
+  <div id="warn">Too large for this window — zoom out (Ctrl / ⌘ −), or check Resolution under Monitor &amp; options</div>
 </main>
 <aside>
   <div class="seg" id="views" style="margin:0 0 10px"><button data-v="size" class="on">Size</button><button data-v="work">Workspace</button><button data-v="foot">Footprint</button></div>
@@ -92,6 +92,7 @@ a{color:#0066cc;text-decoration:none}
     <div><b id="det"></b></div>
     <div class="row">Your monitor <input id="diag" type="number" min="10" max="60" step="0.1"> inches
       <button class="chip" data-d="21.5">21.5</button><button class="chip" data-d="24">24</button><button class="chip" data-d="27">27</button><button class="chip" data-d="32">32</button></div>
+    <div class="row">Resolution <select id="res"></select></div>
     <div class="row">Fine-tune <input id="tune" type="range" min="90" max="110" step="0.1" value="100"> <span id="tv">100%</span></div>
     <div class="row">Compare with <select id="ref"><option value="">Nothing</option><option value="card">Credit card</option><option value="a4">A4 sheet</option><option value="letter">US Letter</option><option value="a5">A5 notebook</option><option value="book">Paperback book</option></select></div>
     <div class="row"><label class="chk"><input id="cmp" type="checkbox"> Compare all sizes side by side</label></div>
@@ -407,7 +408,8 @@ function tint(h){const t=hx(h),c=o=>'rgb('+o.map((v,i)=>Math.max(0,Math.min(255,
   $('#lidEdge').style.fill=c(hx('#6D6E70'))}
 const $=s=>document.querySelector(s), svg=$('#stage');
 let group='mac',cur=DATA.mac[1],unit='cm',diag=27,tune=1,view='size';
-try{const s=JSON.parse(localStorage.getItem('ts')||'{}');if(s.diag)diag=s.diag;if(s.tune)tune=s.tune;if(s.unit)unit=s.unit;
+let resSel='';
+try{const s=JSON.parse(localStorage.getItem('ts')||'{}');if(s.diag)diag=s.diag;if(s.tune)tune=s.tune;if(s.unit)unit=s.unit;if(s.res)resSel=s.res;
  DATA.custom=JSON.parse(localStorage.getItem('tsc')||'[]')}catch(e){}
 // restore state from share link
 (function(){const p=new URLSearchParams(location.hash.slice(1));
@@ -415,17 +417,26 @@ try{const s=JSON.parse(localStorage.getItem('ts')||'{}');if(s.diag)diag=s.diag;i
  if(+p.get('m'))diag=+p.get('m');if(+p.get('t'))tune=+p.get('t')/100;if(p.get('u'))unit=p.get('u');if(p.get('v'))view=p.get('v');
  $('#cmp').checked=p.get('c')==='1';if(REFS[p.get('r')])$('#ref').value=p.get('r')})();
 
-const ZL=[.25,.33,.5,.67,.75,.8,.9,1,1.1,1.25,1.5,1.75,2,2.5,3,4,5];
-const chrom=!!navigator.userAgentData,framed=(()=>{try{return top!==self}catch(e){return true}})();
-// Chromium reports screen.width in OS pixels (unaffected by page zoom) while devicePixelRatio includes zoom -> recover zoom from window ratio
-const zoomF=()=>{if(!chrom||framed||!outerWidth)return 1;const z=outerWidth/innerWidth,n=ZL.reduce((a,b)=>Math.abs(b-z)<Math.abs(a-z)?b:a);return Math.abs(n-z)/n<.04?n:z};
-const native=()=>{const r=devicePixelRatio||1,z=zoomF(),f=chrom?r/z:r;return{w:Math.round(screen.width*f),h:Math.round(screen.height*f),r,z}};
-const pxPerMm=()=>{const n=native();return(chrom?Math.hypot(screen.width,screen.height)/diag/n.z:Math.hypot(n.w,n.h)/diag/n.r)/25.4*tune};
+const ZL=[.25,.33,.5,.67,.75,.8,.9,1,1.1,1.25,1.5,1.75,2,2.5,3,4,5],OSS=[1,1.25,1.5,1.75,2,2.25,2.5,3];
+// common native panel resolutions: used to work out the real pixel count whichever way the browser reports screen.width
+const STD=[[1280,720],[1366,768],[1440,900],[1536,864],[1600,900],[1680,1050],[1920,1080],[1920,1200],[2048,1152],[2160,1440],[2256,1504],[2304,1440],[2560,1080],[2560,1440],[2560,1600],[2560,1664],[2880,1620],[2880,1800],[2880,1864],[3000,2000],[3024,1964],[3200,1800],[3440,1440],[3456,2234],[3840,1600],[3840,2160],[3840,2400],[5120,1440],[5120,2160],[5120,2880]];
+const isStd=(w,h)=>STD.some(([a,b])=>Math.abs(a-w)<=2&&Math.abs(b-h)<=2);
+const RESL=['1920x1080','2560x1440','3840x2160','3440x1440','5120x1440','5120x2880','2560x1600','2880x1800','3024x1964','3456x2234'];
+function native(){const r=devicePixelRatio||1,sw=screen.width,sh=screen.height;
+  if(resSel){const [w,h]=resSel.split('x').map(Number);return{w,h,r}}
+  let best=null;
+  for(const k of OSS){const w=Math.round(sw*k),h=Math.round(sh*k);if(!isStd(w,h))continue;const z=r/k,
+    near=ZL.reduce((a,b)=>Math.abs(Math.log(b/z))<Math.abs(Math.log(a/z))?b:a),
+    sc=Math.abs(Math.log(near/z))+.05*Math.abs(Math.log(z));if(!best||sc<best.sc)best={w,h,sc}}
+  return best?{w:best.w,h:best.h,r}:{w:Math.round(sw*r),h:Math.round(sh*r),r}}
+// CSS px per inch = physical ppi / devicePixelRatio (dpr already includes OS scaling and browser zoom)
+const pxPerMm=()=>{const n=native();return Math.hypot(n.w,n.h)/diag/n.r/25.4*tune};
+function initRes(){$('#res').innerHTML='<option value="">Auto-detect</option>'+RESL.map(v=>`<option value="${v}">${v.replace('x',' × ')}</option>`).join('');$('#res').value=resSel}
 const fmt=mm=>unit==='cm'?(mm/10).toFixed(1)+' cm':(mm/25.4).toFixed(2)+'″';
 const both=mm=>(mm/10).toFixed(1)+' cm · '+(mm/25.4).toFixed(2)+'″';
 const el=(t,a,txt)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e};
 const add=e=>svg.appendChild(e);
-const save=()=>{try{localStorage.setItem('ts',JSON.stringify({diag,tune,unit}))}catch(e){}};
+const save=()=>{try{localStorage.setItem('ts',JSON.stringify({diag,tune,unit,res:resSel}))}catch(e){}};
 
 function nav(){
   for(const g of ['mac','phone'])$('#'+g).innerHTML=DATA[g].map(x=>`<button class="item ${x===cur?'on':''}" data-g="${g}" data-i="${x.id}">${x.n}<small>${x.d}″</small></button>`).join('');
@@ -483,12 +494,11 @@ function draw(){
   let m;
   if(cur.custom)m=`<b>${cur.d}″</b> display<br>Width <b>${both(cur.W)}</b><br>Height <b>${both(cur.H)}</b>`;
   else if(mode==='foot')m=`Closed ${cur.m?'laptop':'phone'} · <b>${cur.b[0]} × ${cur.b[1]} × ${cur.b[2]} mm</b><br>Weight <b>${cur.b[3]>=1000?(cur.b[3]/1000).toFixed(2)+' kg':cur.b[3]+' g'}</b>${cur.m?' (varies by chip)':''}`+src;
-  else if(mode==='work')m=`Default workspace <b>${cur.pts[0]} × ${cur.pts[1]} pt</b>${cur.pts[2]?' (estimate)':''}<br>Your monitor now: <b>${screen.width} × ${screen.height}</b> CSS px<br>The mock UI is drawn at true physical size.`;
+  else if(mode==='work')m=`Default workspace <b>${cur.pts[0]} × ${cur.pts[1]} pt</b>${cur.pts[2]?' (estimate)':''}<br>Your screen at this zoom: <b>${Math.round(n.w/n.r)} × ${Math.round(n.h/n.r)}</b> CSS px<br>${cur.m?'The screen area is true size; wallpaper and dock are illustrative.':'The mock UI is drawn at true physical size.'}`;
   else m=`<b>${cur.d}″</b> display · ${cur.w} × ${cur.h} px · ${cur.ppi} ppi<br>Width <b>${both(cur.W)}</b><br>Height <b>${both(cur.H)}</b>`+src;
   $('#meta').innerHTML=m;
   const sw=$('#sw');if(cs){const o=OPT[cur.id],ci=col[cur.id]||0;sw.innerHTML=o.map((id,i)=>`<button class="dot${i===ci?' on':''}" data-c="${i}" title="${PAL[id][0]}" style="background:${PAL[id][1]}"></button>`).join('')+`<span>${PAL[o[ci]][0]}</span>`;tint(PAL[o[ci]][1])}else sw.innerHTML='';
-  const odd=framed&&![1,1.25,1.5,1.75,2,2.25,2.5,3].some(v=>Math.abs(n.r-v)<.01);
-  $('#det').textContent=`Detected ${n.w} × ${n.h} px · ${Math.round(Math.hypot(n.w,n.h)/diag)} ppi`+(chrom&&!framed&&Math.abs(n.z-1)>.01?` · zoom ${Math.round(n.z*100)}% corrected`:'')+(odd?' — browser zoom is on: press Ctrl+0 for exact sizes':'');
+  $('#det').textContent=`Detected ${n.w} × ${n.h} px · ${Math.round(Math.hypot(n.w,n.h)/diag)} ppi · UI scale ${Math.round(n.r*100)}%`;
   $('#diag').value=diag;$('#tv').textContent=(tune*100).toFixed(1)+'%';$('#tune').value=tune*100;
   document.querySelectorAll('#units button').forEach(b=>b.classList.toggle('on',b.dataset.u===unit));
   document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
@@ -522,9 +532,10 @@ $('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.hr
 $('#prt').onclick=printIt;
 $('#diag').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(v>5&&v<100){diag=v;save();draw()}});
 $('#tune').addEventListener('input',e=>{tune=e.target.value/100;save();draw()});
+$('#res').addEventListener('change',e=>{resSel=e.target.value;save();draw()});
 ['#ref','#cmp'].forEach(i=>$(i).addEventListener('change',draw));
 addEventListener('resize',draw);
-nav();draw();
+initRes();nav();draw();
 </script>
 </body>
 </html>
